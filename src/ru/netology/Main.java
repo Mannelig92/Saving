@@ -1,6 +1,10 @@
 package ru.netology;
 
 import java.io.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -29,10 +33,14 @@ public class Main {
         GameProgress gameProgress1 = new GameProgress(2, 5, 7, 2.4);
         GameProgress gameProgress2 = new GameProgress(5, 2, 9, 1.9);
         GameProgress gameProgress3 = new GameProgress(9, 6, 3, 8.6);
-        saveGame(savePath, gameProgress1);
-        zipFiles(zipPath, savePath);
 
-        if(save.delete()) System.out.println("Файл вне архива удалён");
+        List<GameProgress> progress = Arrays.asList(gameProgress1, gameProgress2, gameProgress3);
+
+        for (GameProgress gameProgress : progress) {
+            saveGame(savePath, gameProgress);
+            zipFiles(zipPath, savePath);
+        }
+        if (save.delete()) System.out.println("Файл вне архива удалён");
     }
 
     static void saveGame(String savePath, GameProgress gameProgress1) {
