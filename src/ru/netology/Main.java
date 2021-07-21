@@ -20,8 +20,7 @@ public class Main {
         File savegames = new File("C://Games/savegames");  //создание папки savegames
         System.out.println("Каталог savegames создан: " + savegames.mkdir());
 
-        List<String> saveProgress = new ArrayList<>();
-        List<ZipEntry> zipSaveFiles = new ArrayList<>();
+        List<File> saveProgress = new ArrayList<>();
 
         for (int i = 0; i < progress.size(); i++) {
             File save = new File("C://Games/savegames/save" + i + ".dat");
@@ -30,10 +29,7 @@ public class Main {
             } catch (IOException e) {
                 System.out.println(e.getMessage());
             }
-            String savePath = "C://Games/savegames/save" + i + ".dat";
-            saveProgress.add(savePath);
-            ZipEntry zipEntry = new ZipEntry("packed_save" + i + ".dat");
-            zipSaveFiles.add(zipEntry);
+            saveProgress.add(save);
         }
 
         File zip = new File("C://Games/savegames/zipSaves.zip");
@@ -46,14 +42,15 @@ public class Main {
 
         for (int i = 0; i < progress.size(); i++) {
             saveGame(saveProgress.get(i), progress.get(i));
-            zipFiles(zipPath, saveProgress.get(i), zipSaveFiles.get(i));
         }
-
-        //        if (save.delete()) System.out.println("Файл вне архива удалён"); //Потом восстановлю
+        zipFiles(zipPath, saveProgress);
+        for (File i : saveProgress) {
+            if (i.delete()) System.out.println("Файл вне архива удалён");
+        }
 
     }
 
-    static void saveGame(String saveProgress, GameProgress gameProgress1) {
+    static void saveGame(File saveProgress, GameProgress gameProgress1) {
         try (FileOutputStream fileOutputStream = new FileOutputStream(saveProgress);
              ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
             objectOutputStream.writeObject(gameProgress1);
@@ -62,15 +59,17 @@ public class Main {
         }
     }
 
-    static void zipFiles(String zipPath, String saveProgress, ZipEntry zipEntryPath) {
-        try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipPath)); //+
-             FileInputStream fileInputStream = new FileInputStream(saveProgress)) {  //+
-            ZipEntry zipEntry = new ZipEntry(zipEntryPath);
-            zipOutputStream.putNextEntry(zipEntry);
-            byte[] buffer = new byte[fileInputStream.available()];
-            fileInputStream.read(buffer);
-            zipOutputStream.write(buffer);
-            zipOutputStream.closeEntry();
+    static void zipFiles(String zipPath, List<File> saveProgress) {
+        try (ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipPath))) {
+            for (int i = 0; i < saveProgress.size(); i++) {
+                FileInputStream fileInputStream = new FileInputStream(saveProgress.get(i));
+                ZipEntry zipEntry = new ZipEntry("packed_save" + i + ".dat");
+                zipOutputStream.putNextEntry(zipEntry);
+                byte[] buffer = new byte[fileInputStream.available()];
+                fileInputStream.read(buffer);
+                zipOutputStream.write(buffer);
+                zipOutputStream.closeEntry();
+            }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
